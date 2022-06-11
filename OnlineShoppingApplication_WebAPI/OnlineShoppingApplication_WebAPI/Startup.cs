@@ -30,7 +30,13 @@ namespace OnlineShoppingApplication_WebAPI
         {
 
             services.AddControllers();
+
+            services.AddMvc(option => option.EnableEndpointRouting = false)
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
             services.AddDbContext<NewOnlineShoppingApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("OnlineShoppingApplicationDB")));
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "OnlineShoppingApplication_WebAPI", Version = "v1" });
