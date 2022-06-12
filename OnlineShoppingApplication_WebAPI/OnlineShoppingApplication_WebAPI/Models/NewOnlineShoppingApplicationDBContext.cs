@@ -69,6 +69,11 @@ namespace OnlineShoppingApplication_WebAPI.Models
                     .IsUnicode(false)
                     .HasColumnName("CategoryID");
 
+                entity.Property(e => e.CategoryStatus)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -230,6 +235,11 @@ namespace OnlineShoppingApplication_WebAPI.Models
                     .IsUnicode(false);
 
                 entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ProductStatus)
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);

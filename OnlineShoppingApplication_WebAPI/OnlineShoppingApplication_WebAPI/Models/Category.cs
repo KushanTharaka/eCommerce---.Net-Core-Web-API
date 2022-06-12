@@ -14,6 +14,7 @@ namespace OnlineShoppingApplication_WebAPI.Models
 
         public string CategoryId { get; set; }
         public string Name { get; set; }
+        public string CategoryStatus { get; set; }
 
         public virtual ICollection<Product> Products { get; set; }
     }
