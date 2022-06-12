@@ -92,7 +92,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             //return NoContent();
         }
 
-        //Register New Customer
+        //Register New Admin
         [HttpPost("/registerAdmin")]
         public async Task<ActionResult<AdminDetails_Model>> RegisterAdmin(AdminDetails_Model adminDetails)
         {
