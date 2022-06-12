@@ -25,12 +25,12 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         [HttpPost("/registerCustomer")]
         public async Task<ActionResult<CustomerDetails_Model>> RegisterCustomer(CustomerDetails_Model customerDetails)
         {
-
-            string UserID = GenerateUserID();
+            string AccType = "Customer";
+            string UserID = GenerateUserID(AccType);
 
             UsersRole usersRole = new UsersRole();
             usersRole.Id = UserID;
-            usersRole.Role = "Customer";
+            usersRole.Role = AccType;
             usersRole.Email = customerDetails.Email;
             usersRole.Password = customerDetails.Password;
             _context.UsersRoles.Add(usersRole);
@@ -88,47 +88,114 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
                 }
             }
 
-            //return CreatedAtAction("GetUsersRole", new { id = customerDetails.Id }, customerDetails); need to create GetUserRole endpoint for this to work
-            return NoContent();
+            return CreatedAtAction("GetUsersRole", new { email = customerDetails.Email, password = customerDetails.Password }, usersRole); //need to create GetUserRole endpoint for this to work
+            //return NoContent();
         }
 
-        //Customer Login
-        [HttpGet("/CustomerLogin/{email}/{password}")]
+        //Register New Customer
+        [HttpPost("/registerAdmin")]
+        public async Task<ActionResult<AdminDetails_Model>> RegisterAdmin(AdminDetails_Model adminDetails)
+        {
+            string AccType = "Admin";
+            string UserID = GenerateUserID(AccType);
+
+            UsersRole usersRole = new UsersRole();
+            usersRole.Id = UserID;
+            usersRole.Role = AccType;
+            usersRole.Email = adminDetails.Email;
+            usersRole.Password = adminDetails.Password;
+            _context.UsersRoles.Add(usersRole);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+
+                Admin admin = new Admin();
+                admin.AdminId = UserID;
+                admin.FirstName = adminDetails.FirstName;
+                admin.LastName = adminDetails.LastName;
+                _context.Admins.Add(admin);
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    if (UsersRoleExists(usersRole.Id))
+                    {
+                        var usersRoleCreated = await _context.UsersRoles.FindAsync(usersRole.Id);
+                        if (usersRoleCreated == null)
+                        {
+                            return NotFound();
+                        }
+
+                        _context.UsersRoles.Remove(usersRoleCreated);
+                        await _context.SaveChangesAsync();
+
+                        return NoContent();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+            }
+            catch (DbUpdateException)
+            {
+                if (UsersRoleExists(usersRole.Id))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return CreatedAtAction("GetUsersRole", new { email = adminDetails.Email, password = adminDetails.Password }, usersRole); //need to create GetUserRole endpoint for this to work
+            //return NoContent();
+        }
+
+        //Login
+        [HttpGet("/Login/{email}/{password}")]
         public async Task<ActionResult<UsersRole>> GetUsersRole(string email, string password)
         {
             var usersRole = _context.UsersRoles
                 .Where(u => u.Email == email)
                 .Where(u => u.Password == password)
                 .Include(cus => cus.Customer)
-                    // Add this to go insde an included table's connected table [.ThenInclude(customer => customer.ShoppingCarts)]
+                .Include(adm => adm.Admin)
+                // Add this to go insde an included table's connected table [.ThenInclude(customer => customer.ShoppingCarts)]
                 .FirstOrDefault<UsersRole>();
 
             if (usersRole == null)
             {
                 return NotFound();
             }
-
+            string uRole = usersRole.Role;
             return usersRole;
         }
 
-        private string GenerateUserID()
+        private string GenerateUserID(string AccType)
         {
             bool availability = true;
-            string newCusID = "";
+            string newUserID = "";
             while(availability)
             {
                 Random random = new Random();
                 int randomNum = random.Next(1, 999999);
-                string cID = "Customer" + randomNum;
+                string uID = AccType + randomNum;
 
-                availability = UsersRoleExists(cID);
+                availability = UsersRoleExists(uID);
                 if(!availability)
                 {
-                    newCusID = cID;
+                    newUserID = uID;
                 }
 
             }
-            return newCusID;
+            return newUserID;
         }
 
         private bool UsersRoleExists(string id)
