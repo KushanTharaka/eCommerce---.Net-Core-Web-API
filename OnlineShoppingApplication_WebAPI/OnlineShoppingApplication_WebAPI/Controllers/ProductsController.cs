@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineShoppingApplication_WebAPI.Custom_Models;
@@ -22,13 +23,15 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         // GET: api/Products
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-            return await _context.Products.Where(prod => prod.ProductStatus == "Available").Where(prod => prod.Quantity > 0).ToListAsync();
+            return await _context.Products.Where(prod => prod.ProductStatus == "Available" && prod.Quantity > 0).ToListAsync();
         }
 
         // GET: api/Products/5
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(string id)
         {
@@ -43,6 +46,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         // PUT: api/Products/5
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(string id, ProductDetails_Model productDetails_Model)
         {
@@ -83,6 +87,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         // POST: api/Products
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(ProductDetails_Model productDetails_Model)
         {
@@ -118,6 +123,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         // DELETE: api/Products/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(string id)
         {

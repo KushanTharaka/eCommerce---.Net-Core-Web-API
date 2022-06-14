@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OnlineShoppingApplication_WebAPI.Custom_Models;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace OnlineShoppingApplication_WebAPI.Controllers
 {
@@ -14,7 +16,6 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
     [ApiController]
     public class CategoryController : ControllerBase
     {
-
         private readonly NewOnlineShoppingApplicationDBContext _context;
 
         public CategoryController(NewOnlineShoppingApplicationDBContext context)
@@ -23,6 +24,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         // GET: api/Category
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {
@@ -30,6 +32,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         // GET: api/Category/5
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(string id)
         {
@@ -44,6 +47,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         // PUT: api/Category/5
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCategory(string id, CategoryDetails_Model categoryDetails_Model)
         {
@@ -79,6 +83,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         // POST: api/Category
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<Category>> PostCategory(CategoryDetails_Model categoryDetails_Model)
         {
@@ -109,6 +114,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         // DELETE: api/Category/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(string id)
         {
@@ -149,7 +155,17 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             return _context.Categories.Any(e => e.CategoryId == id);
         }
 
-
+        private string getUserRole()
+        {
+            var identity = HttpContext.User.Identities as ClaimsIdentity;
+            string role = "";
+            if (identity != null)
+            {
+                var userClaims = identity.Claims;
+                role = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Role)?.Value;
+            }
+            return role;
+        }
 
     }
 }
