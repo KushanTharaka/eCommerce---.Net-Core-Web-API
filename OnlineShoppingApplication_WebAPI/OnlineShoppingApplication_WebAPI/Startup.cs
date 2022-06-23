@@ -40,6 +40,14 @@ namespace OnlineShoppingApplication_WebAPI
 
             services.AddDbContext<NewOnlineShoppingApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("OnlineShoppingApplicationDB")));
 
+            services.AddCors(o => o.AddPolicy("CorsPolicy", builder => 
+            {
+                builder.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+
+            }));
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -71,6 +79,8 @@ namespace OnlineShoppingApplication_WebAPI
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors("CorsPolicy");
 
             app.UseRouting();
 

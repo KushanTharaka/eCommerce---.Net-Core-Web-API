@@ -207,12 +207,13 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             else if(usersRole.Role == "Admin")
             {
                 var token = GenerateToken("Admin", usersRole);
-                return token;
+                //return token;
+                return Ok(new { response = token });
             }
             else
             {
                 var token = GenerateToken("Customer", usersRole);
-                return token;
+                return Ok(new { response = token });
             }
             
         }
@@ -226,11 +227,12 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             {
                 var claims = new[]
                 {
-                new Claim(ClaimTypes.Email, usersRole.Email),
-                new Claim(ClaimTypes.NameIdentifier, usersRole.Admin.AdminId),
-                new Claim(ClaimTypes.Name, usersRole.Admin.FirstName),
-                new Claim(ClaimTypes.Surname, usersRole.Admin.LastName),
-                new Claim(ClaimTypes.Role, usersRole.Role)
+                new Claim("Email", usersRole.Email),
+                new Claim("AdminId", usersRole.Admin.AdminId),
+                new Claim("FirstName", usersRole.Admin.FirstName),
+                new Claim("LastName", usersRole.Admin.LastName),
+                new Claim(ClaimTypes.Role, usersRole.Role),
+                new Claim("Role", usersRole.Role)
                 };
 
                 var token = new JwtSecurityToken(_config["Jwt:Issuer"],
@@ -245,14 +247,16 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             {
                 var claims = new[]
                 {
-                new Claim(ClaimTypes.Email, usersRole.Email),
-                new Claim(ClaimTypes.NameIdentifier, usersRole.Customer.CustomerId),
-                new Claim(ClaimTypes.Name, usersRole.Customer.FirstName),
-                new Claim(ClaimTypes.Surname, usersRole.Customer.LastName),
-                new Claim(ClaimTypes.Gender, usersRole.Customer.Gender),
-                new Claim(ClaimTypes.StreetAddress, usersRole.Customer.Address),
-                new Claim(ClaimTypes.PostalCode, usersRole.Customer.ZipCode),
-                new Claim(ClaimTypes.Role, usersRole.Role)
+                new Claim("Email", usersRole.Email),
+                new Claim("CustomerId", usersRole.Customer.CustomerId),
+                new Claim("Title", usersRole.Customer.Title),
+                new Claim("FirstName", usersRole.Customer.FirstName),
+                new Claim("LastName", usersRole.Customer.LastName),
+                new Claim("Gender", usersRole.Customer.Gender),
+                new Claim("Address", usersRole.Customer.Address),
+                new Claim("PostalCode", usersRole.Customer.ZipCode),
+                new Claim(ClaimTypes.Role, usersRole.Role),
+                new Claim("Role", usersRole.Role)
                 };
 
                 var token = new JwtSecurityToken(_config["Jwt:Issuer"],
