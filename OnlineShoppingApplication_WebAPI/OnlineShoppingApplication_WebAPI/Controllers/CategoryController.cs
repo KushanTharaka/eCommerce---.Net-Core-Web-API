@@ -47,21 +47,24 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         // PUT: api/Category/5
-        [Authorize(Roles = "Admin")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(string id, CategoryDetails_Model categoryDetails_Model)
+        //[Authorize(Roles = "Admin")]
+        [AllowAnonymous]
+        [HttpPut("/updateCategory/{categoryId}/{name}")]
+        public async Task<IActionResult> PutCategory(string categoryId, string name)
         {
             Category category = new Category();
-            category.CategoryId = id;
-            category.Name = categoryDetails_Model.Name;
-            category.CategoryStatus = categoryDetails_Model.CategoryStatus;
+            category.CategoryId = categoryId;
+            category.Name = name;
+            //category.CategoryStatus = categoryDetails_Model.CategoryStatus;
 
-            if (id != category.CategoryId)
+            if (categoryId != category.CategoryId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(category).State = EntityState.Modified;
+            //_context.Entry(category).State = EntityState.Modified;
+            _context.Categories.Attach(category);
+            _context.Entry(category).Property(c => c.Name).IsModified = true;
 
             try
             {
@@ -69,7 +72,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CategoryExists(id))
+                if (!CategoryExists(categoryId))
                 {
                     return NotFound();
                 }
@@ -80,6 +83,67 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             }
 
             return NoContent();
+        }
+
+        [AllowAnonymous]
+        [HttpPut("/deleteCategory/{categoryId}")]
+        public async Task<IActionResult> deleteCategory(string categoryId)
+        {
+            Category category = new Category();
+            category.CategoryId = categoryId;
+            category.CategoryStatus = "Unavailable";
+
+            if (categoryId != category.CategoryId)
+            {
+                return BadRequest();
+            }
+
+            //_context.Entry(category).State = EntityState.Modified;
+            _context.Categories.Attach(category);
+            _context.Entry(category).Property(c => c.CategoryStatus).IsModified = true;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+
+                var res = await _context.Products.Where(p => p.CategoryId == categoryId).ToListAsync();
+                foreach (var item in res)
+                {
+                    item.ProductStatus = "Unavailable";
+                }
+
+                //Product product = new Product();
+                //product.ProductId = productId;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!CategoryExists(categoryId))//!CartItemExists(customerId)
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CategoryExists(categoryId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok();
         }
 
         // POST: api/Category
