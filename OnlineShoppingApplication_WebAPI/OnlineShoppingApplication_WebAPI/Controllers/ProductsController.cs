@@ -30,6 +30,14 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             return await _context.Products.Where(prod => prod.ProductStatus == "Available" && prod.Quantity > 0).ToListAsync();
         }
 
+        [AllowAnonymous]
+        [HttpGet ("/getProductsAdmin")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetProductsAdmin()
+        {
+            return _context.Products.Where(prod => prod.ProductStatus == "Available" && prod.Quantity > 0)
+                .Include(cat => cat.Category).ToList();
+        }
+
         // GET: api/Products/5
         [AllowAnonymous]
         [HttpGet("{id}")]
@@ -45,8 +53,23 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             return product;
         }
 
+        [AllowAnonymous]
+        [HttpGet("/getCategoryProducts/{id}")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetCategoryProducts(string id)
+        {
+            return await _context.Products.Where(prod => prod.CategoryId.Equals(id)).ToListAsync();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("/getAdminCategoryProducts/{id}")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetAdminCategoryProducts(string id)
+        {
+            return _context.Products.Where(prod => prod.CategoryId.Equals(id))
+                .Include(cat => cat.Category).ToList();
+        }
+
         // PUT: api/Products/5
-        [Authorize(Roles = "Admin")]
+        [AllowAnonymous]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(string id, ProductDetails_Model productDetails_Model)
         {
@@ -55,8 +78,8 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             product.Name = productDetails_Model.Name;
             product.CategoryId = productDetails_Model.CategoryId;
             product.Price = productDetails_Model.Price;
-            product.Details = productDetails_Model.Name;
-            product.Images = "Remove Column";
+            product.Details = productDetails_Model.Details;
+            product.Images = productDetails_Model.Images;
             product.Quantity = productDetails_Model.Quantity;
             product.ProductStatus = productDetails_Model.ProductStatus;
 
@@ -86,6 +109,42 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             return NoContent();
         }
 
+        [AllowAnonymous]
+        [HttpPut("/deleteProduct/{productId}")]
+        public async Task<IActionResult> deleteProduct(string productId)
+        {
+            Product product = new Product();
+            product.ProductId = productId;
+            product.ProductStatus = "Unavailable";
+
+            if (productId != product.ProductId)
+            {
+                return BadRequest();
+            }
+
+            //_context.Entry(category).State = EntityState.Modified;
+            _context.Products.Attach(product);
+            _context.Entry(product).Property(p => p.ProductStatus).IsModified = true;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProductExists(productId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok();
+        }
+
         // POST: api/Products
         [Authorize(Roles = "Admin")]
         [HttpPost]
@@ -98,8 +157,8 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             product.Name = productDetails_Model.Name;
             product.CategoryId = productDetails_Model.CategoryId;
             product.Price = productDetails_Model.Price;
-            product.Details = productDetails_Model.Name;
-            product.Images = "Remove Column";
+            product.Details = productDetails_Model.Details;
+            product.Images = productDetails_Model.Images;
             product.Quantity = productDetails_Model.Quantity;
             product.ProductStatus = productDetails_Model.ProductStatus;
             _context.Products.Add(product);

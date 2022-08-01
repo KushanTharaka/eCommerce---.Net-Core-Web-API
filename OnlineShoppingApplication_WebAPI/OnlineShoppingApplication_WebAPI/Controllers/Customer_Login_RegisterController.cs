@@ -65,7 +65,6 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
                     customer.Title = customerDetails.Title;
                     customer.FirstName = customerDetails.FirstName;
                     customer.LastName = customerDetails.LastName;
-                    customer.Dob = customerDetails.Dob;
                     customer.Gender = customerDetails.Gender;
                     customer.Address = customerDetails.Address;
                     customer.ZipCode = customerDetails.ZipCode;
@@ -238,7 +237,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
                 var token = new JwtSecurityToken(_config["Jwt:Issuer"],
                   _config["Jwt:Audience"],
                   claims,
-                  expires: DateTime.Now.AddMinutes(60),
+                  expires: DateTime.Now.AddMinutes(280),
                   signingCredentials: credentials);
 
                 return new JwtSecurityTokenHandler().WriteToken(token);
@@ -262,7 +261,7 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
                 var token = new JwtSecurityToken(_config["Jwt:Issuer"],
                   _config["Jwt:Audience"],
                   claims,
-                  expires: DateTime.Now.AddMinutes(15),
+                  expires: DateTime.Now.AddMinutes(280),
                   signingCredentials: credentials);
 
                 return new JwtSecurityTokenHandler().WriteToken(token);
