@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -217,6 +219,25 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
             
         }
 
+        //[Authorize(Roles = "Admin")]
+        [AllowAnonymous]
+        [HttpGet("/getAllCustomers")]
+        public async Task<ActionResult<IEnumerable<UsersRole>>> GetAllCustomers()
+        {
+            return _context.UsersRoles.Where(ur => ur.Role == "Customer")
+                .Include(c => c.Customer).ToList();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("/getSearchedCustomers/{searchTerm}")]
+        public async Task<ActionResult<IEnumerable<UsersRole>>> GetSearchedCustomers(string searchTerm)
+        {
+            //return _context.Customers.Where(c => ( c.CustomerId.Contains("Customer") ) && c.FirstName.Contains(searchTerm) || c.LastName.Contains(searchTerm))
+            //    .Include(ur => ur).ToList(); SEPERATE CODE >>> .CustomerId.Contains(searchTerm) || c.Customer.FirstName.Contains(searchTerm) || c.Customer.LastName.Contains(searchTerm)
+            return _context.UsersRoles.Where(ur => ur.Role == "Customer").Where(c => c.Customer.CustomerId.Contains(searchTerm) || c.Customer.FirstName.Contains(searchTerm) || c.Customer.LastName.Contains(searchTerm))
+                .Include(c => c.Customer).ToList();
+        }
+
         private string GenerateToken(string role, UsersRole usersRole)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -266,6 +287,128 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
 
                 return new JwtSecurityTokenHandler().WriteToken(token);
             }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("/sendOTP/{otp}")]
+        public async Task<IActionResult> SendOTP(string otp, LoginDetails_Model loginDetails_Model)
+        {
+            try
+            {
+                var res = sendOTP(otp, loginDetails_Model.Email);
+                return Ok(new { response = res });
+            }
+            catch
+            {
+                return Conflict();
+            }
+        }
+
+        private string sendOTP(string otp, string email)
+        {
+            string dateTime = DateTime.Now.ToString();
+
+            //With Mail Trap Service 
+            /*var client = new SmtpClient("smtp.mailtrap.io", 2525)
+            {
+                Credentials = new NetworkCredential("652356b7d2f938", "ff0aafd908067b"),
+                EnableSsl = true
+            };
+
+            var from = new MailAddress("from@example.com");
+            var to = new MailAddress("to@example.com");
+            var subject = "Snap Buy";
+            var body = "<p>Hello Customer, your OTP code is <b>" + otp + "</b></p>";
+
+            var mail = new MailMessage();
+            mail.Subject = subject;
+            mail.From = from;
+            mail.To.Add(to);
+            mail.Body = body;
+            mail.IsBodyHtml = true;
+
+            client.Send(mail);
+            Console.WriteLine("Sent");
+            return "Sent"; */
+
+            var from = "snapbuy.shopping@gmail.com";
+            var pass = "jglcadhuqpvggvls";
+            var to = email;
+
+            var subject = "Snap Buy";
+            var body = "<p>Hello Customer, your OTP code is <b>" + otp + "</b></p>";
+
+            MailMessage message = new MailMessage();
+            message.From = new MailAddress(from);
+            message.Subject = subject;
+            message.To.Add(new MailAddress(to));
+            message.Body = body;
+            message.IsBodyHtml = true;
+
+            var smtpClient = new SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                Credentials = new NetworkCredential(from, pass),
+                EnableSsl = true,
+            };
+            smtpClient.Send(message);
+            return "Sent";
+
+        }
+
+        [AllowAnonymous]
+        [HttpPost("/pwdChangeAccCheck")]
+        public async Task<ActionResult<string>> pwdChangeAccCheck(LoginDetails_Model loginDetails_Model)
+        {
+            //return _context.UsersRoles.Any(ur => ur.Email == email);
+            //return UsersEmailExists(email);
+            var user = _context.UsersRoles
+                .Where(u => u.Email == loginDetails_Model.Email)
+                .FirstOrDefault<UsersRole>();
+            if(user == null)
+            {
+                return NotFound();
+                //return Ok(new { response = "NotFound" });
+            }
+            else
+            {
+                return Ok(new { response = user.Id });
+            }          
+        }
+
+        [AllowAnonymous]
+        [HttpPut("/updatePassword/{id}/{pwd}")]
+        public async Task<IActionResult> updatePassword(string id, string pwd)
+        {
+            UsersRole usersRole = new UsersRole();
+            usersRole.Id = id;
+            usersRole.Password = pwd;
+
+            if (id != usersRole.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.UsersRoles.Attach(usersRole);
+            _context.Entry(usersRole).Property(ur => ur.Password).IsModified = true;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UsersRoleExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok();
         }
 
         private string GenerateUserID(string AccType)
