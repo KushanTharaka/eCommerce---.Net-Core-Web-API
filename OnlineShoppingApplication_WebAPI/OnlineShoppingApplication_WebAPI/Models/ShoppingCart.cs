@@ -17,8 +17,9 @@ namespace OnlineShoppingApplication_WebAPI.Models
         public string ProductId { get; set; }
         public double Price { get; set; }
         public int Quantity { get; set; }
-        public DateTime DateAdded { get; set; }
+        public string DateAdded { get; set; }
         public string CartStatus { get; set; }
+        public string DatePurchased { get; set; }
 
         public virtual Customer Customer { get; set; }
         public virtual Product Product { get; set; }

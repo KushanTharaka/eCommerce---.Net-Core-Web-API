@@ -69,6 +69,11 @@ namespace OnlineShoppingApplication_WebAPI.Models
                     .IsUnicode(false)
                     .HasColumnName("CategoryID");
 
+                entity.Property(e => e.CategoryStatus)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -86,10 +91,6 @@ namespace OnlineShoppingApplication_WebAPI.Models
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
-
-                entity.Property(e => e.Dob)
-                    .HasColumnType("datetime")
-                    .HasColumnName("DOB");
 
                 entity.Property(e => e.FirstName)
                     .IsRequired()
@@ -234,6 +235,11 @@ namespace OnlineShoppingApplication_WebAPI.Models
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
+                entity.Property(e => e.ProductStatus)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
                 entity.HasOne(d => d.Category)
                     .WithMany(p => p.Products)
                     .HasForeignKey(d => d.CategoryId)
@@ -268,7 +274,13 @@ namespace OnlineShoppingApplication_WebAPI.Models
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
-                entity.Property(e => e.DateAdded).HasColumnType("date");
+                entity.Property(e => e.DateAdded)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DatePurchased)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
 
                 entity.HasOne(d => d.Customer)
                     .WithMany(p => p.ShoppingCarts)
