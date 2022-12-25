@@ -31,10 +31,25 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         }
 
         [AllowAnonymous]
+        [HttpGet("/getSerachedProducts/{searchTerm}")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetSerachedProducts(string searchTerm)
+        {
+            return await _context.Products.Where(prod => (prod.Name.Contains(searchTerm) || prod.Details.Contains(searchTerm)) && prod.ProductStatus == "Available" && prod.Quantity > 0).ToListAsync();
+        }
+
+        [AllowAnonymous]
         [HttpGet ("/getProductsAdmin")]
         public async Task<ActionResult<IEnumerable<Product>>> GetProductsAdmin()
         {
             return _context.Products.Where(prod => prod.ProductStatus == "Available" && prod.Quantity > 0)
+                .Include(cat => cat.Category).ToList();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("/getSerachedProductsAdmin/{searchTerm}")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetSerachedProductsAdmin(string searchTerm)
+        {
+            return _context.Products.Where(prod => ( prod.Name.Contains(searchTerm) || prod.Details.Contains(searchTerm) ) && prod.ProductStatus == "Available" && prod.Quantity > 0)
                 .Include(cat => cat.Category).ToList();
         }
 
@@ -57,14 +72,14 @@ namespace OnlineShoppingApplication_WebAPI.Controllers
         [HttpGet("/getCategoryProducts/{id}")]
         public async Task<ActionResult<IEnumerable<Product>>> GetCategoryProducts(string id)
         {
-            return await _context.Products.Where(prod => prod.CategoryId.Equals(id)).ToListAsync();
+            return await _context.Products.Where(prod => prod.CategoryId.Equals(id) && prod.ProductStatus == "Available" && prod.Quantity > 0).ToListAsync();
         }
 
         [AllowAnonymous]
         [HttpGet("/getAdminCategoryProducts/{id}")]
         public async Task<ActionResult<IEnumerable<Product>>> GetAdminCategoryProducts(string id)
         {
-            return _context.Products.Where(prod => prod.CategoryId.Equals(id))
+            return _context.Products.Where(prod => prod.CategoryId.Equals(id) && prod.ProductStatus == "Available" && prod.Quantity > 0)
                 .Include(cat => cat.Category).ToList();
         }
 
